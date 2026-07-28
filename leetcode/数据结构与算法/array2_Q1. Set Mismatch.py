@@ -17,6 +17,11 @@ class Solution:
             if i + 1 not in test_nums:
                 miss_num = i + 1
         return [dup_num, miss_num]
+    
+# class Solution:
+#     def findErrorNums(self, nums: List[int]) -> List[int]:
+#         S = sum(set(nums))
+#         return [sum(nums)-S ,len(nums)*(len(nums)+1)//2-S]
 
 def main():
     solution = Solution()

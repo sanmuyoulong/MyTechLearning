@@ -56,7 +56,7 @@ if __name__ == "__main__" :
     print("queue.enqueue(14);")
     queue_obj.enqueue(14)
 
-while queue_obj.is_empty() is False:
-    print("Dequeue(): " + str(queue_obj.dequeue()))
+    while queue_obj.is_empty() is False:
+        print("Dequeue(): " + str(queue_obj.dequeue()))
 
-print("is_empty(): " + str(queue_obj.is_empty()))
+    print("is_empty(): " + str(queue_obj.is_empty()))

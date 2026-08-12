@@ -57,6 +57,10 @@ This is a repository for my tech learning. I will store learning codes and relev
     - LASSO Regression - Linear Regression with an L1 penalty (performs feature selection)
     - Bayesian Regression - estimates a posterior distribution over the weights instead of a single point estimate
     - Logistic Regression - uses the logistic function for binary classification
+- 8/12
+  - Completed DataCamp beginner course *Supervised Learning with scikit-learn*
+  - Completed Chapter 1 of the Unsupervised Learning module
+  - Independently completed an end-to-end machine learning project — the Sowing Success crop-selection project (documented in Section 五)
 
 ---
 

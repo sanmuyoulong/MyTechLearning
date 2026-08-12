@@ -2,6 +2,15 @@
 
 This is a repository for my tech learning. I will store learning codes and relevant files here to record my daily learning progress.
 
+## 目录
+
+- [Learning Progress](#learning-progress)
+- [一、Python 常用数据结构方法速查表](#一python-常用数据结构方法速查表)
+- [二、Pandas](#二pandas)
+- [三、Joining Data with pandas](#三joining-data-with-pandas)
+- [四、Introduction to Statistics in Python](#四introduction-to-statistics-in-python)
+- [五、Sowing Success 项目（机器学习选作物）](#五sowing-success-项目机器学习选作物)
+
 ## Learning Progress
 
 - 7/13
@@ -621,3 +630,50 @@ outliers = data[(data < lower) | (data > upper)]
   - 箱体：Q1 ~ Q3（中间50%数据）
   - 箱体中线：中位数
   - 须以外圆点 = 异常值
+
+---
+
+## 五、Sowing Success 项目（机器学习选作物）
+
+### 项目背景
+农民要根据土壤指标选择最适宜种植的作物。本项目用监督式多分类模型，
+根据土壤中的氮(N)、磷(P)、钾(K)、pH 四项指标预测最适合作物(crop)，
+并找出对预测贡献最大的单一特征。
+
+数据集 `soil_measures.csv`：2200 行 × 5 列，22 种作物每类各 100 条
+（完全均衡），无缺失值、无重复行。
+
+### 建模思路
+- **目标一**：预测 crop（22 类多分类）。
+- **目标二**：找出"最重要的单一特征"。做法不是用一个大模型，
+  而是**每个特征单独训练一个模型**，比较谁单独预测得最准——
+  最准的那个特征信息量最大。
+- **模型**：每个特征用 `LogisticRegression`（包 `StandardScaler` 标准化），
+  作为表格数据的标准 baseline。
+- **评估**：按 80/20 分层切分（`stratify=y`），用测试集准确率比较特征。
+
+### 关键步骤（完整代码见 `workspace/notebook.ipynb`）
+```python
+X = crops[["N", "P", "K", "ph"]]     # 4 个输入特征
+y = crops["crop"]                    # 目标变量
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+# 逐特征建模，把每个特征的测试准确率存进字典
+feature_performance = {}
+for f in ["N", "P", "K", "ph"]:
+    model = Pipeline([
+        ("scaler", StandardScaler()),
+        ("clf", LogisticRegression(max_iter=5000, class_weight="balanced")),
+    ])
+    model.fit(X_train[[f]], y_train)
+    feature_performance[f] = accuracy_score(y_test, model.predict(X_test[[f]]))
+best_feature = max(feature_performance, key=feature_performance.get)
+```
+
+### 结果
+单特征测试准确率：N=0.139、P=0.191、**K=0.280**、pH=0.098。
+→ **最重要的单一特征是 K（钾）**：若农民只能测一项土壤指标，测钾对选作物最有帮助。
+
+> 注：单特征模型准确率偏低是设计使然，目的只是给特征排重要性顺序；
+> 把 4 个特征合并成一个模型，预测准确率会明显提高。

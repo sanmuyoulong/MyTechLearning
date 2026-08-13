@@ -10,6 +10,7 @@ This is a repository for my tech learning. I will store learning codes and relev
 - [三、Joining Data with pandas](#三joining-data-with-pandas)
 - [四、Introduction to Statistics in Python](#四introduction-to-statistics-in-python)
 - [五、Sowing Success 项目（机器学习选作物）](#五sowing-success-项目机器学习选作物)
+- [六、逻辑回归（Logistic Regression）笔记](#六逻辑回归logistic-regression笔记)
 
 ## Learning Progress
 
@@ -681,3 +682,122 @@ best_feature = max(feature_performance, key=feature_performance.get)
 
 > 注：单特征模型准确率偏低是设计使然，目的只是给特征排重要性顺序；
 > 把 4 个特征合并成一个模型，预测准确率会明显提高。
+
+---
+
+## 六、逻辑回归（Logistic Regression）笔记
+
+> 名字带"回归"，但它其实是**分类**算法：输出的是样本属于正类的**概率**，不是连续数值。主要用于二分类，也可扩展多分类。
+
+### 1. 核心概念
+
+- **输入**：特征向量 `x = (x₁, x₂, …, xₙ)`
+- **输出**：概率 `P(y=1 | x) ∈ [0, 1]`，`y` 是二分类标签（0/1）
+- **做法**：先把特征线性组合成 `z = wᵀx + b`，再用 Sigmoid 把 `z` 压缩到 `(0, 1)`
+- **预测规则**：`P(y=1|x) ≥ 0.5` 判为 1，否则判为 0
+
+### 2. Sigmoid 函数：定义与性质
+
+$$\sigma(z) = \frac{1}{1 + e^{-z}}, \qquad z = w^{\top}x + b$$
+
+| 性质 | 说明 |
+|------|------|
+| 值域 | (0, 1)，天然适合表示概率 |
+| 单调递增 | z 越大 σ(z) 越接近 1，z 越小越接近 0 |
+| σ(0) = 0.5 | z = 0 处正好是 0.5 的概率分界 |
+| 中心对称 | σ(−z) = 1 − σ(z) |
+| 导数简洁 | σ′(z) = σ(z)·(1 − σ(z))，用自身表示，求梯度极方便 |
+
+### 3. 对数几率（logit）—— Sigmoid 的来历
+
+- **几率 odds**：事件发生与不发生的概率之比 `odds = p / (1 − p)`
+- **对数几率 logit**：`logit(p) = ln(p / (1 − p))`
+- **核心假设**：对数几率是特征的**线性函数**
+
+$$\ln\frac{p}{1-p} = w^{\top}x + b$$
+
+反解出 p：
+
+$$p = \frac{1}{1+e^{-(w^{\top}x+b)}} = \sigma(w^{\top}x+b)$$
+
+→ 这说明 Sigmoid **不是拍脑袋选的**，而是"线性模型 + 概率取值约束"自然推出的结果。
+
+### 4. 决策边界
+
+`P(y=1|x) = 0.5` 对应 `z = 0`，即 `wᵀx + b = 0` —— 一条**线性决策边界（超平面）**。
+所以逻辑回归是**线性分类器**：数据近似线性可分时效果好。
+
+### 5. 损失函数：负对数似然（二元交叉熵）
+
+从**最大似然估计（MLE）**推出，五步走：
+
+**① 伯努利假设**
+`P(y=1|x) = h(x) = σ(wᵀx+b)`，`P(y=0|x) = 1 − h(x)`。
+
+**② 单样本似然**（用 0/1 幂次把两种情况合并成一个式子）
+$$P(y_i|x_i) = h_i^{\,y_i}\,(1-h_i)^{\,1-y_i}$$
+
+**③ 整体似然**（假设样本独立同分布 i.i.d.，取乘积）
+$$L(w)=\prod_i h_i^{\,y_i}(1-h_i)^{\,1-y_i}$$
+
+**④ 取对数**（连乘变连加，数值稳定；log 单调递增，最优点不变）
+$$\ell(w)=\sum_i\Big[y_i\log h_i + (1-y_i)\log(1-h_i)\Big]$$
+
+**⑤ 取负、求平均**（优化器求最小，除以 m 只是缩放）
+$$J(w)=-\frac{1}{m}\sum_{i=1}^{m}\Big[y_i\log h(x_i) + (1-y_i)\log(1-h(x_i))\Big]$$
+
+**四个设计要点：**
+- **为什么取 log**：连乘变连加，好求导、防下溢；log 单调，最大化似然 ⟺ 最大化对数似然。
+- **为什么取负号**：MLE 要最大化 ℓ(w)，梯度下降要最小化，取负统一方向。
+- **为什么除以 m**：求平均，让梯度尺度与样本量无关，不改变最优点。
+- **为什么不用平方误差 (y−h)²**：逻辑回归是概率模型，用似然打分更自然；且平方误差此时**非凸**，而负对数似然 + Sigmoid 是**凸函数**，有唯一全局最优。
+
+**两项的直觉（预测越错、惩罚越大）：**
+- `y=1` 时损失 = −log h：h→1 惩罚→0，h→0 惩罚→+∞
+- `y=0` 时损失 = −log(1−h)：h→0 惩罚→0，h→1 惩罚→+∞
+
+### 6. 梯度下降优化方向
+
+**梯度的几何含义（复习）**：多元函数在某点的梯度 `∇J = (∂J/∂w₁, …, ∂J/∂wₙ)ᵀ`，指向**变化率最大（最陡上升）方向**，其模长 = 最大变化率。方向导数与梯度满足内积关系 `DᵤJ = ∇J · u`（由多元链式法则推出，几何上是梯度在方向 u 上的投影长度）。
+
+**梯度下降**：要最小化 J，沿**负梯度**方向走一步：
+
+$$w \leftarrow w - \alpha\,\nabla J(w)$$
+
+其中 α 是学习率（超参数，人为设定，常从 0.1 / 0.01 / 0.001 起步；sklearn 默认 solver 内部自动定步长，不暴露 α）。
+
+**逻辑回归的梯度**（对 J 逐项链式求导，利用 σ′=σ(1−σ)）：
+
+$$\frac{\partial J}{\partial w} = \frac{1}{m}\sum_{i=1}^{m}\big(h(x_i)-y_i\big)\,x_i$$
+
+含义：每条样本的梯度贡献正比于"预测值与真实值之差 (hᵢ − yᵢ) 乘以特征 xᵢ"——预测越错，修正力度越大。与线性回归梯度形式几乎相同，差别仅在于这里的 hᵢ 是 Sigmoid 输出（概率）而非线性值。
+
+### 7. 与线性回归的区别
+
+| 维度 | 线性回归 Linear Regression | 逻辑回归 Logistic Regression |
+|------|---------------------------|------------------------------|
+| 任务 | 回归（预测连续值） | 分类（预测类别/概率） |
+| 输出 | 任意实数 ŷ = wᵀx + b | 概率 h = σ(wᵀx+b) ∈ (0,1) |
+| 模型 | 线性函数 | 线性函数 + Sigmoid |
+| 损失函数 | 均方误差 MSE = (1/m)Σ(y−ŷ)² | 负对数似然 / 交叉熵 |
+| 参数求解 | 正规方程或梯度下降 | 梯度下降 / 拟牛顿（lbfgs） |
+| 决策边界 | 无 | wᵀx + b = 0 线性边界 |
+
+### 8. sklearn 速记
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+model = Pipeline([
+    ("scaler", StandardScaler()),
+    ("clf", LogisticRegression(max_iter=5000, class_weight="balanced")),
+])
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+```
+
+- 二分类默认；多分类默认 OvR，可设 `multi_class="multinomial"` 用 softmax
+- 默认 `solver="lbfgs"` 内部自动定步长，无需手动设学习率；只有 `SGDClassifier` 才需设 `eta0`
+- 建议先标准化（尤其带正则化时），否则特征尺度会影响收敛

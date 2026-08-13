@@ -11,6 +11,8 @@ This is a repository for my tech learning. I will store learning codes and relev
 - [四、Introduction to Statistics in Python](#四introduction-to-statistics-in-python)
 - [五、Sowing Success 项目（机器学习选作物）](#五sowing-success-项目机器学习选作物)
 - [六、逻辑回归（Logistic Regression）笔记](#六逻辑回归logistic-regression笔记)
+- [七、t-SNE（t-分布随机邻域嵌入）笔记](#七t-snet-分布随机邻域嵌入笔记)
+- [八、随机过程与随机游走](#八随机过程与随机游走)
 
 ## Learning Progress
 
@@ -62,6 +64,12 @@ This is a repository for my tech learning. I will store learning codes and relev
   - Completed DataCamp beginner course *Supervised Learning with scikit-learn*
   - Completed Chapter 1 of the Unsupervised Learning module
   - Independently completed an end-to-end machine learning project — the Sowing Success crop-selection project (documented in Section 五)
+- 8/13
+  - Learned stochastic processes: formal definition (probability space, index set, state space), sample paths, and examples (coin-toss/Bernoulli process, Brownian motion, Poisson process); proved the symmetric simple random walk on Z is recurrent — the "抛硬币财富归零" problem (documented in Section 八)
+  - Studied where k-means is used in ML: standalone clustering, plus initialization/component inside GMM, RBF networks, spectral clustering, vector quantization, and bag-of-visual-words
+  - Deep-dived t-SNE (documented in Section 七): core idea (preserve local structure), high-dim Gaussian similarity → conditional probability → symmetrization, low-dim Student-t similarity (heavy tails solve crowding), KL-divergence minimization (spring-force interpretation), how low-dim coordinates y are computed (init → compute Q → gradient → update y), and key parameters (perplexity / learning rate / iterations)
+  - Understood Gaussian scoring (distance → similarity score) and the meaning of σ (bandwidth / radius of attention)
+  - Mapped today's topics to math branches: probability, statistics, stochastic processes, information theory (KL), optimization (gradient descent), linear algebra
 
 ---
 
@@ -801,3 +809,148 @@ y_pred = model.predict(X_test)
 - 二分类默认；多分类默认 OvR，可设 `multi_class="multinomial"` 用 softmax
 - 默认 `solver="lbfgs"` 内部自动定步长，无需手动设学习率；只有 `SGDClassifier` 才需设 `eta0`
 - 建议先标准化（尤其带正则化时），否则特征尺度会影响收敛
+
+---
+
+## 七、t-SNE（t-分布随机邻域嵌入）笔记
+
+> t-SNE 是一个**降维/可视化**算法（不是聚类）：把高维数据压到 2 维，同时尽量保持"邻居关系"。名字里的 "t" 来自低维用的 Student-t 分布，"SNE" 是随机邻域嵌入（Stochastic Neighbor Embedding）。
+
+### 1. 核心思想：保局部、弃全局
+
+高维数据（如 784 维像素、20000 维基因）无法直接观察，t-SNE 把每个点映射到 2 维，让"原来挨得近的点降维后还挨得近"。
+
+**类比**：把揉皱的纸摊平——相邻两点仍是相邻，但整体形状会变形、区域间距失去意义。核心目标：**保近邻，弃全局**（簇内结构可靠，簇间距离不保真）。
+
+### 2. 高维相似度：高斯分布 + 条件概率 + 对称化
+
+对每个点 $i$，用以 $i$ 为中心的高斯分布给周围点打分（条件概率）：
+
+$$p_{j\mid i} = \frac{\exp\left(-\frac{\lVert x_i-x_j\rVert^2}{2\sigma_i^2}\right)}{\sum_{k\neq i}\exp\left(-\frac{\lVert x_i-x_k\rVert^2}{2\sigma_i^2}\right)}$$
+
+- $\sigma_i$ 每个点不同，由 **perplexity** 决定（相当于"每个点关心多少个邻居"）；密集区 σ 自动变小、稀疏区自动变大。
+- 归一化让每行和为 1，抵消 σ 尺度差异，变成真正的概率分布（KL 散度只对概率分布有意义）。
+
+**对称化**（因为条件概率不对称 $p_{j\mid i}\neq p_{i\mid j}$）：
+
+$$p_{ij} = \frac{p_{j\mid i}+p_{i\mid j}}{2N}$$
+
+- $N$ = 数据点总数；除以 $2N$ 让 $\sum p_{ij}=1$。
+- 好处：保证 $p_{ij}=p_{ji}$（相似是相互的）、拯救离群点（避免被"遗忘"）、梯度更稳。
+
+### 3. 低维相似度：t 分布（厚尾）
+
+$$q_{ij} = \frac{(1+\lVert y_i-y_j\rVert^2)^{-1}}{\sum_{k\neq l}(1+\lVert y_k-y_l\rVert^2)^{-1}}$$
+
+分子是自由度 1 的 t 分布（柯西分布），相似度 $s(d)=\frac{1}{1+d^2}$。
+
+**为什么用 t 而不是高斯**：高斯是"指数衰减"（远距离迅速归零），t 是"幂律衰减"（$1/d^2$，厚尾）。低维空间"装不下"，用高斯会让中等距离的点挤成一团（**拥挤问题 crowding problem**）；t 的厚尾给它们"松绑"，簇与簇才能分开。
+
+### 4. 优化目标：最小化 KL 散度
+
+$$\mathrm{KL}(P\parallel Q)=\sum_{i,j}p_{ij}\log\frac{p_{ij}}{q_{ij}}$$
+
+**KL 不对称**（关键）：
+- $p$ 大 $q$ 小（高维近、低维远）→ 惩罚很大 → 拉近；
+- $p$ 小 $q$ 大（高维远、低维近）→ 惩罚很小 → 几乎不管。
+
+所以 t-SNE **宁可不惩罚"假亲近"，也要保证"真邻居"不散开**。
+
+### 5. 梯度下降：弹簧力解释
+
+$$\frac{\partial\mathrm{KL}}{\partial y_i}=4\sum_j(p_{ij}-q_{ij})(y_i-y_j)(1+\lVert y_i-y_j\rVert^2)^{-1}$$
+
+- $p_{ij}-q_{ij}>0$ → 吸引力（拉近）；$<0$ → 排斥力（推开）。
+- 最后一项来自 t 分布，让排斥力长程但有限。
+
+更新：$y_i\leftarrow y_i-\eta\cdot\frac{\partial\mathrm{KL}}{\partial y_i}$，$\eta$ 是学习率。
+
+### 6. 关键步骤
+
+1. 用 $x$ 算高维 $p_{ij}$（只算一次，固定）
+2. 初始化 $y$（随机 或 PCA 投影，sklearn 默认 PCA）
+3. 循环：算 $q$ → 算梯度 → 更新 $y$（早期有 early exaggeration）
+4. 收敛，输出 2D 坐标
+
+> $x$ 是"题目"（原始数据，固定不动）；$y$ 是"答案"（低维坐标，初始化后靠梯度一步步挪对位置）。这也是 t-SNE 结果有随机性的原因——起点和优化路径都带随机性。
+
+### 7. 与层次聚类的区别
+
+| 维度 | 层次聚类 | t-SNE |
+|------|----------|-------|
+| 任务 | 聚类（划分） | 降维/可视化 |
+| 输出 | 树状图 + 离散标签 | 2D 坐标 |
+| 回答的问题 | 谁属于哪簇 | 数据长什么样 |
+
+两者常配合：先 t-SNE 看结构，再用层次聚类/k-means 给硬划分。
+
+### 8. 参数
+
+| 参数 | 典型值 | 作用 | 调坏后果 |
+|------|--------|------|----------|
+| perplexity | 5–50（默认30） | 每个点关心的邻居数 | 太小碎片化、太大丢细节 |
+| learning rate | 10–1000（默认200） | 梯度步长 | 太小卡住、太大挤成球 |
+| n_iter | 1000–5000 | 迭代轮数 | 太少未收敛 |
+| random_state | 任意固定值 | 随机种子 | 不设则每次不同 |
+
+### 9. 注意事项
+
+- 簇间距离无意义（只保局部）；坐标轴无物理意义
+- 结果有随机性（必须设 random_state）
+- 不适合直接当"聚类结果"或特征
+- O(N²) 慢；大样本先 PCA 再 t-SNE，或改 UMAP
+- 不同 perplexity 呈现不同视角，别只看一张图
+
+### 10. 高斯打分（σ 的含义）
+
+高斯打分 = 把"距离"翻译成 0~1 的"相似度分数"：$s=\exp\left(-\frac{d^2}{2\sigma^2}\right)$。
+
+- **σ = 钟形曲线的"胖瘦" = 关注半径/尺度**，决定"多远算远"。
+- σ 小：曲线窄而高，只认近邻（挑剔）；σ 大：曲线宽而矮，远近区分度低（包容）。
+
+---
+
+## 八、随机过程与随机游走
+
+### 1. 随机过程的严格定义
+
+一个随机过程是定义在概率空间 $(\Omega,\mathcal{F},\mathbb{P})$ 上、以 $T$ 为指标集、取值于状态空间 $S$ 的一族随机变量：
+
+$$\{X_t : t\in T\},\quad X_t:\Omega\to S$$
+
+- $\Omega$ 样本空间、$\mathcal{F}$ 事件域（σ-代数）、$\mathbb{P}$ 概率测度
+- $T$：指标集（时间）。$T=\mathbb{N}$ 为离散时间，$T=[0,\infty)$ 为连续时间
+- $S$：状态空间。$\mathbb{R}$ 实值、$\{0,1\}$ 或 $\mathbb{N}_0$ 为离散状态
+
+等价地，是一个二元映射 $X:(\omega,t)\mapsto X_t(\omega)$——固定 $t$ 是随机变量，固定 $\omega$ 是样本轨道。
+
+### 2. 样本轨道（sample path）
+
+固定某个结果 $\omega$，函数 $t\mapsto X_t(\omega)$ 就是一条**样本轨道**（从指标集到状态空间的一条确定函数）。
+
+| 视角 | 固定什么 | 得到什么 |
+|------|----------|----------|
+| 纵向切片 | 固定 $t$ | 随机变量 $X_t$ |
+| 横向切片 | 固定 $\omega$ | 样本轨道 |
+
+### 3. 三个经典例子
+
+| 过程 | 指标集 | 状态空间 | 样本轨道 |
+|------|--------|----------|----------|
+| 抛硬币序列（伯努利过程） | $\mathbb{N}$ | $\{0,1\}$ | 0/1 阶梯序列 |
+| 标准布朗运动 | $[0,\infty)$ | $\mathbb{R}$ | 连续但处处不可微的曲线 |
+| 泊松过程 | $[0,\infty)$ | $\mathbb{N}_0$ | 非减的阶梯函数 |
+
+### 4. 对称随机游走的常返性（抛硬币归零问题）
+
+甲乙抛硬币，甲财富 $S_n$ 是简单对称随机游走（每次 ±1，各 1/2）。要证"甲几乎必然在有限步回到 0"。
+
+记 $p_k=$ 从财富 $k$ 出发最终到达 0 的概率。由强马尔可夫性质与平移不变性，$p_2=p_1^2$，且：
+
+$$p_1=\frac12 p_0+\frac12 p_2=\frac12+\frac12 p_1^2\ \Longrightarrow\ (p_1-1)^2=0\ \Longrightarrow\ p_1=1$$
+
+因此从 ±1 出发回到 0 的概率为 1，而第一步后 $S_1\in\{\pm1\}$ 恒成立，故 $\mathbb{P}(T<\infty)=1$。
+
+**两个注意点**：
+1. "有限步"指随机步数有限、几乎必然发生，而非存在固定 N（前 N 次全反面时 $S_N=N\neq0$）。
+2. 虽必然回归，但平均回归时间无限：$\mathbb{E}[T]=\infty$（零常返）。这正是 Pólya 常返定理的一维特例（一、二维常返，三维及以上暂态）。

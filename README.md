@@ -70,7 +70,8 @@ This is a repository for my tech learning. I will store learning codes and relev
   - Deep-dived t-SNE (documented in Section 七): core idea (preserve local structure), high-dim Gaussian similarity → conditional probability → symmetrization, low-dim Student-t similarity (heavy tails solve crowding), KL-divergence minimization (spring-force interpretation), how low-dim coordinates y are computed (init → compute Q → gradient → update y), and key parameters (perplexity / learning rate / iterations)
   - Understood Gaussian scoring (distance → similarity score) and the meaning of σ (bandwidth / radius of attention)
   - Mapped today's topics to math branches: probability, statistics, stochastic processes, information theory (KL), optimization (gradient descent), linear algebra
-
+- 8/14
+  - Started *Dive into Deep Learning* (d2l) Chapter 2 "Preliminaries"; completed **2.1 Data Manipulation**: hands-on PyTorch practice of tensor creation, shape/reshape, element-wise ops, concatenation/comparison/sum, broadcasting, indexing/slicing, in-place memory ops, NumPy interconversion, and scalar extraction (annotated code in `My DeepLearning/Dive into Deep learning/第二章/2-1.ipynb`)
 ---
 
 ## 一、Python 常用数据结构方法速查表
@@ -954,3 +955,41 @@ $$p_1=\frac12 p_0+\frac12 p_2=\frac12+\frac12 p_1^2\ \Longrightarrow\ (p_1-1)^2=
 **两个注意点**：
 1. "有限步"指随机步数有限、几乎必然发生，而非存在固定 N（前 N 次全反面时 $S_N=N\neq0$）。
 2. 虽必然回归，但平均回归时间无限：$\mathbb{E}[T]=\infty$（零常返）。这正是 Pólya 常返定理的一维特例（一、二维常返，三维及以上暂态）。
+
+---
+
+## 九、PyTorch 张量基础（d2l 第2章 2.1 数据操作）
+
+> 学习目标：用 PyTorch 做**数据操作**。张量（tensor）= 多维数组，是深度学习的基本数据容器（对标 NumPy 的 ndarray，但能在 GPU 上算）。详细带注释代码见 `My DeepLearning/Dive into Deep learning/第二章/2-1.ipynb`。
+
+### 1. 张量从哪来
+- `torch.arange(n)`：0 ~ n-1 的一维张量
+- `torch.zeros / ones(shape)`：全 0 / 全 1
+- `torch.randn(*shape)`：标准正态分布随机抽样
+- `torch.tensor([...])`：从 Python 列表 / NumPy 直接构造
+
+### 2. 形状与重塑
+- `x.shape` 看维度；`x.numel()` 看元素总数
+- `x.reshape(r, c)` 改形状，`-1` 表示该维自动推断
+
+### 3. 按元素运算
+`+ - * / **`（**是求幂），与原 NumPy 用法一致；`np.exp(x)` 逐元素指数。
+
+### 4. 拼接 / 比较 / 求和
+- `torch.cat((A, B), dim=0/1)` 沿行 / 列拼接
+- `X == Y` 逐元素比较得布尔张量
+- `X.sum()` 全元素求和
+
+### 5. 广播（Broadcasting）
+形状不同但兼容时自动拉伸对齐：从末维往前比，维度为 1 或缺失则复制补齐。例 `(2,3,2) + (1,3,2)` → `(1,3,2)` 复制成 `(2,3,2)`。
+
+### 6. 索引与切片
+`X[-1]` 末行、`X[1:3]` 第 1–2 行（左闭右开）、`X[i, j] = v` 单点赋值、`X[0:2, :] = v` 整行 / 整列赋值。
+
+### 7. 内存节省（原地操作）
+- `Y = Y + X` 新建张量，`id(Y)` 改变
+- 原地操作 `X += Y` 或 `Z[:] = X + Y` 复用内存，省显存 / 内存（深度学习中张量很大，很重要）
+
+### 8. 与 NumPy 互转 & 标量
+- `X.numpy()` 张量 → NumPy（共享内存）；`torch.tensor(A)` 反向
+- `a.item()` / `float(a)` / `int(a)` 把单元素张量取成 Python 标量

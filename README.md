@@ -72,6 +72,9 @@ This is a repository for my tech learning. I will store learning codes and relev
   - Mapped today's topics to math branches: probability, statistics, stochastic processes, information theory (KL), optimization (gradient descent), linear algebra
 - 8/14
   - Started *Dive into Deep Learning* (d2l) Chapter 2 "Preliminaries"; completed **2.1 Data Manipulation**: hands-on PyTorch practice of tensor creation, shape/reshape, element-wise ops, concatenation/comparison/sum, broadcasting, indexing/slicing, in-place memory ops, NumPy interconversion, and scalar extraction (annotated code in `My DeepLearning/Dive into Deep learning/第二章/2-1.ipynb`)
+- 8/17
+  - Continued d2l Chapter 2: completed **2.2 Data Preprocessing** (handle missing values via `fillna(mean, numeric_only=True)`, one-hot encode with `get_dummies(dummy_na=True)`, convert to tensors), **2.3 Linear Algebra** (vectors/matrices, transpose, Hadamard product, broadcasting, reduction sum, dot product, matrix multiply `mv`/`mm`, norms), **2.4 Calculus** (numerical derivative via limit, d2l plotting helpers), and **2.5 Automatic Differentiation** (requires_grad, scalar/non-scalar `backward`, `detach`, control-flow autodiff)
+  - Added concise markdown annotations to notebooks 2-2 through 2-5 (2-1 annotated earlier); all annotated code in `My DeepLearning/Dive into Deep learning/第二章/`
 ---
 
 ## 一、Python 常用数据结构方法速查表

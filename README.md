@@ -75,6 +75,13 @@ This is a repository for my tech learning. I will store learning codes and relev
 - 8/17
   - Continued d2l Chapter 2: completed **2.2 Data Preprocessing** (handle missing values via `fillna(mean, numeric_only=True)`, one-hot encode with `get_dummies(dummy_na=True)`, convert to tensors), **2.3 Linear Algebra** (vectors/matrices, transpose, Hadamard product, broadcasting, reduction sum, dot product, matrix multiply `mv`/`mm`, norms), **2.4 Calculus** (numerical derivative via limit, d2l plotting helpers), and **2.5 Automatic Differentiation** (requires_grad, scalar/non-scalar `backward`, `detach`, control-flow autodiff)
   - Added concise markdown annotations to notebooks 2-2 through 2-5 (2-1 annotated earlier); all annotated code in `My DeepLearning/Dive into Deep learning/第二章/`
+- 8/18
+  - Started d2l **Chapter 3 — Linear Neural Networks**; annotated all five notebooks (3-1 ~ 3-6) with concise code comments in `My DeepLearning/Dive into Deep learning/第三章：线性神经网络/`
+  - 3-1: vectorization (element-wise Python loop vs tensorized ops) and plotting the Gaussian/normal distribution
+  - 3-2: linear regression **from scratch** — synthetic data, minibatch data iterator, `linreg` / `squared_loss` / `sgd`, and the full training loop
+  - 3-3: concise linear regression via `nn.Sequential`, `DataLoader`, built-in `MSELoss` and `optim.SGD`
+  - 3-5: Fashion-MNIST — downloading, inspecting, and visualizing the image-classification dataset
+  - 3-6: softmax regression **from scratch** — softmax, cross-entropy loss, accuracy metric, and the complete train/predict pipeline
 ---
 
 ## 一、Python 常用数据结构方法速查表

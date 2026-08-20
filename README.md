@@ -82,6 +82,9 @@ This is a repository for my tech learning. I will store learning codes and relev
   - 3-3: concise linear regression via `nn.Sequential`, `DataLoader`, built-in `MSELoss` and `optim.SGD`
   - 3-5: Fashion-MNIST — downloading, inspecting, and visualizing the image-classification dataset
   - 3-6: softmax regression **from scratch** — softmax, cross-entropy loss, accuracy metric, and the complete train/predict pipeline
+- 8/20
+  - Completed d2l **4.3 Concise Implementation of Multilayer Perceptrons**: built a Fashion-MNIST classifier with `nn.Sequential` using `Flatten → Linear(784, 256) → ReLU → Linear(256, 10)` and learned how a hidden layer plus a nonlinear activation enables an MLP to model more complex relationships than a linear classifier.
+  - Practiced the concise PyTorch training workflow: initialized linear-layer weights with a normal distribution, used `CrossEntropyLoss` and `optim.SGD`, and trained the network through d2l's reusable training loop; related notebook: `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/mlp-concise.ipynb`.
 ---
 
 ## 一、Python 常用数据结构方法速查表

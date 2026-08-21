@@ -85,6 +85,14 @@ This is a repository for my tech learning. I will store learning codes and relev
 - 8/20
   - Completed d2l **4.3 Concise Implementation of Multilayer Perceptrons**: built a Fashion-MNIST classifier with `nn.Sequential` using `Flatten → Linear(784, 256) → ReLU → Linear(256, 10)` and learned how a hidden layer plus a nonlinear activation enables an MLP to model more complex relationships than a linear classifier.
   - Practiced the concise PyTorch training workflow: initialized linear-layer weights with a normal distribution, used `CrossEntropyLoss` and `optim.SGD`, and trained the network through d2l's reusable training loop; related notebook: `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/mlp-concise.ipynb`.
+- 8/21
+  - Continued d2l **Chapter 4 — Multilayer Perceptrons** and completed sections **4.4–4.8**.
+  - 4.4: model selection, training/validation/test error, and how dataset size and model complexity lead to underfitting or overfitting.
+  - 4.5: weight decay as $L_2$ regularization — adding a norm penalty controlled by $\lambda$, comparing regularized and unregularized models, and using PyTorch's `weight_decay` option.
+  - 4.6: dropout — randomly masking hidden activations during training to reduce co-adaptation and overfitting, while disabling dropout during inference.
+  - 4.7: forward propagation, backpropagation, and computational graphs; understood how the chain rule computes gradients and why intermediate values must be stored during training.
+  - 4.8: numerical stability and initialization — vanishing/exploding gradients, symmetry breaking, and Xavier initialization for keeping activation and gradient scales stable.
+  - Related notebooks are stored in `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/`.
 ---
 
 ## 一、Python 常用数据结构方法速查表

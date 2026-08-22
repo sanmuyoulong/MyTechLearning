@@ -82,6 +82,22 @@ This is a repository for my tech learning. I will store learning codes and relev
   - 3-3: concise linear regression via `nn.Sequential`, `DataLoader`, built-in `MSELoss` and `optim.SGD`
   - 3-5: Fashion-MNIST — downloading, inspecting, and visualizing the image-classification dataset
   - 3-6: softmax regression **from scratch** — softmax, cross-entropy loss, accuracy metric, and the complete train/predict pipeline
+- 8/20
+  - Completed d2l **4.3 Concise Implementation of Multilayer Perceptrons**: built a Fashion-MNIST classifier with `nn.Sequential` using `Flatten → Linear(784, 256) → ReLU → Linear(256, 10)` and learned how a hidden layer plus a nonlinear activation enables an MLP to model more complex relationships than a linear classifier.
+  - Practiced the concise PyTorch training workflow: initialized linear-layer weights with a normal distribution, used `CrossEntropyLoss` and `optim.SGD`, and trained the network through d2l's reusable training loop; related notebook: `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/mlp-concise.ipynb`.
+- 8/21
+  - Continued d2l **Chapter 4 — Multilayer Perceptrons** and completed sections **4.4–4.8**.
+  - 4.4: model selection, training/validation/test error, and how dataset size and model complexity lead to underfitting or overfitting.
+  - 4.5: weight decay as $L_2$ regularization — adding a norm penalty controlled by $\lambda$, comparing regularized and unregularized models, and using PyTorch's `weight_decay` option.
+  - 4.6: dropout — randomly masking hidden activations during training to reduce co-adaptation and overfitting, while disabling dropout during inference.
+  - 4.7: forward propagation, backpropagation, and computational graphs; understood how the chain rule computes gradients and why intermediate values must be stored during training.
+  - 4.8: numerical stability and initialization — vanishing/exploding gradients, symmetry breaking, and Xavier initialization for keeping activation and gradient scales stable.
+  - Related notebooks are stored in `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/`.
+- 8/22
+  - Reinforced d2l **4.6 Dropout** through hands-on practice: implemented `dropout_layer` from scratch, applied different dropout probabilities to a two-hidden-layer MLP, and reproduced the model concisely with PyTorch's `nn.Dropout`; confirmed that dropout is enabled during training but disabled during inference.
+  - Completed the d2l **Kaggle House Prices** project: loaded the competition datasets, removed non-predictive IDs, standardized numerical features, filled missing values, one-hot encoded categorical features, and converted the processed data into tensors.
+  - Built a linear-regression baseline with Adam, evaluated it using logarithmic RMSE and K-fold cross-validation, retrained on all available training data, predicted test-set prices, and generated `submission.csv` for Kaggle submission.
+  - Related work is stored in `My DeepLearning/Dive into Deep learning/pytorch/chapter_multilayer-perceptrons/dropout.ipynb` and `kaggle-house-price.ipynb`.
 ---
 
 ## 一、Python 常用数据结构方法速查表
